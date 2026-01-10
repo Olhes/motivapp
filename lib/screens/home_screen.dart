@@ -11,251 +11,279 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen>
-    with SingleTickerProviderStateMixin {
+class _HomeScreenState extends State<HomeScreen> {
   late Quote _currentQuote;
-  bool _isFavorite = false;
-  late AnimationController _animationController;
   bool _isAnimating = false;
 
   @override
   void initState() {
     super.initState();
-    _animationController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 500),
-    );
-    _loadNewQuote();
-  }
-
-  @override
-  void dispose() {
-    _animationController.dispose();
-    super.dispose();
+    _currentQuote = quotesRepository.getRandomQuote();
   }
 
   void _loadNewQuote() {
-    setState(() {
-      _isAnimating = true;
-    });
-
-    // Pequeño retraso para permitir que la animación se complete
+    setState(() => _isAnimating = true);
     Future.delayed(const Duration(milliseconds: 300), () {
       if (mounted) {
         setState(() {
           _currentQuote = quotesRepository.getRandomQuote();
-          _isFavorite = _currentQuote.isFavorite;
           _isAnimating = false;
         });
       }
     });
   }
 
-  void _toggleFavorite() {
-    setState(() {
-      _isFavorite = !_isFavorite;
-      quotesRepository.toggleFavorite(_currentQuote, _isFavorite);
-
-      // Mostrar un mensaje de confirmación
-      final message = _isFavorite
-          ? 'Añadido a favoritos'
-          : 'Eliminado de favoritos';
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(message), duration: const Duration(seconds: 1)),
-      );
-    });
-  }
-
-  void _shareQuote() {
-    final text = '"${_currentQuote.text}" - ${_currentQuote.author}';
-    Share.share(text);
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Motivación Diaria'),
-        centerTitle: true,
-        elevation: 0,
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        foregroundColor: Colors.white,
-      ),
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Theme.of(context).colorScheme.primary,
-              Theme.of(context).colorScheme.secondary,
-            ],
+      extendBodyBehindAppBar: true,
+      // 1. Extraído a widget independiente para que no se reconstruya
+      appBar: const CustomAppBar(),
+      body: Stack(
+        children: [
+          // 2. Imagen con caché de tamaño para no saturar la RAM
+          Image.asset(
+            'assets/images/background1.avif',
+            fit: BoxFit.cover,
+            height: double.infinity,
+            width: double.infinity,
+            cacheHeight: MediaQuery.of(context).size.height.toInt(),
           ),
-        ),
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24.0),
+
+          SafeArea(
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // Tarjeta con la cita
-                AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 500),
-                  child: _isAnimating
-                      ? const SizedBox.shrink()
-                      : Card(
-                          elevation: 8,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16.0),
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(24.0),
-                            child: Column(
-                              children: [
-                                // Icono de comillas
-                                Icon(
-                                  Icons.format_quote_rounded,
-                                  size: 40,
-                                  color: Theme.of(
-                                    context,
-                                  ).colorScheme.primary.withOpacity(0.3),
-                                ),
-                                const SizedBox(height: 16),
-                                // Texto de la cita
-                                Text(
-                                      _currentQuote.text,
-                                      style: const TextStyle(
-                                        fontSize: 20,
-                                        fontStyle: FontStyle.italic,
-                                        height: 1.5,
-                                      ),
-                                      textAlign: TextAlign.center,
-                                    )
-                                    .animate()
-                                    .fadeIn(duration: 300.ms)
-                                    .slideY(begin: 0.1, end: 0),
-                                const SizedBox(height: 24),
-                                // Autor de la cita
-                                Text(
-                                      '- ${_currentQuote.author}',
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                        color: Theme.of(
-                                          context,
-                                        ).colorScheme.secondary,
-                                      ),
-                                    )
-                                    .animate()
-                                    .fadeIn(delay: 200.ms)
-                                    .slideX(begin: 0.1, end: 0),
-                                // Categoría
-                                if (_currentQuote.category.isNotEmpty) ...[
-                                  const SizedBox(height: 8),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 12,
-                                      vertical: 4,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: Theme.of(
-                                        context,
-                                      ).colorScheme.primary.withOpacity(0.1),
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    child: Text(
-                                      _currentQuote.category,
-                                      style: TextStyle(
-                                        color: Theme.of(
-                                          context,
-                                        ).colorScheme.primary,
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                  ).animate().fadeIn(delay: 300.ms),
-                                ],
-                              ],
-                            ),
-                          ),
-                        ).animate().scale(
-                          delay: 200.ms,
-                          begin: const Offset(0.95, 0.95),
-                        ),
-                ),
-
-                const SizedBox(height: 40),
-
-                // Botones de acción
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    // Botón de favorito
-                    FloatingActionButton(
-                      heroTag: 'favorite',
-                      onPressed: _toggleFavorite,
-                      backgroundColor: Colors.white,
-                      child: Icon(
-                        _isFavorite ? Icons.favorite : Icons.favorite_border,
-                        color: Colors.red,
-                        size: 28,
-                      ),
-                    ),
-
-                    // Botón principal para nueva cita
-                    ElevatedButton.icon(
-                      onPressed: _loadNewQuote,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Theme.of(context).colorScheme.primary,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 32,
-                          vertical: 16,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(30),
-                        ),
-                        elevation: 4,
-                      ),
-                      icon: const Icon(Icons.autorenew, size: 24),
-                      label: const Text(
-                        'Nueva Frase',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-
-                    // Botón de compartir
-                    FloatingActionButton(
-                      heroTag: 'share',
-                      onPressed: _shareQuote,
-                      backgroundColor: Colors.white,
-                      child: const Icon(
-                        Icons.share,
-                        color: Colors.blue,
-                        size: 24,
-                      ),
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 20),
-
-                // Texto de ayuda
-                const Text(
-                  'Toca el botón para una nueva dosis de motivación',
-                  style: TextStyle(
-                    color: Colors.white70,
-                    fontStyle: FontStyle.italic,
+                const TopMenu(), // 3. Widget Const: Reconstrucción CERO
+                const Spacer(),
+                // 4. Solo este widget se ve afectado por el cambio de frase
+                QuoteCard(quote: _currentQuote, isAnimating: _isAnimating),
+                const Spacer(),
+                BottomActions(
+                  isFavorite: _currentQuote.isFavorite,
+                  onFavorite: () {
+                    setState(() {
+                      quotesRepository.toggleFavorite(
+                        _currentQuote,
+                        !_currentQuote.isFavorite,
+                      );
+                    });
+                  },
+                  onRefresh: _loadNewQuote,
+                  onShare: () => Share.share(
+                    '"${_currentQuote.text}" - ${_currentQuote.author}',
                   ),
                 ),
+                const SizedBox(height: 20),
               ],
             ),
           ),
+        ],
+      ),
+      bottomNavigationBar: const ModernBottomNav(), // 5. Widget Const
+    );
+  }
+}
+
+// --- WIDGETS OPTIMIZADOS (FUERA DE LA CLASE PRINCIPAL) ---
+
+class TopMenu extends StatelessWidget {
+  const TopMenu({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const Padding(
+      padding: EdgeInsets.symmetric(vertical: 10),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          MenuButton("Phrases", active: true),
+          MenuButton("Video"),
+          MenuButton("Images"),
+        ],
+      ),
+    );
+  }
+}
+
+class MenuButton extends StatelessWidget {
+  final String text;
+  final bool active;
+  const MenuButton(this.text, {super.key, this.active = false});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+      decoration: BoxDecoration(
+        // SOLUCIÓN: Usamos Color con opacidad HEX (0x4D = 30%)
+        color: active ? const Color(0x4DFFFFFF) : Colors.transparent,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0x4DFFFFFF)),
+      ),
+      child: Text(
+        text,
+        style: const TextStyle(
+          color: Colors.white,
+          fontWeight: FontWeight.w500,
         ),
+      ),
+    );
+  }
+}
+
+class QuoteCard extends StatelessWidget {
+  final Quote quote;
+  final bool isAnimating;
+
+  const QuoteCard({super.key, required this.quote, required this.isAnimating});
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 500),
+      child: isAnimating
+          ? const SizedBox(height: 200)
+          : Container(
+              key: ValueKey(quote.text),
+              margin: const EdgeInsets.symmetric(horizontal: 30),
+              padding: const EdgeInsets.all(30),
+              decoration: BoxDecoration(
+                // SOLUCIÓN: Color directo sin .withOpacity()
+                color: const Color(0xD9FFFFFF),
+                borderRadius: BorderRadius.circular(30),
+                border: Border.all(color: const Color(0x4DFFFFFF)),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    quote.text,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      fontSize: 22,
+                      height: 1.4,
+                      color: Colors.black87,
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ).animate().fadeIn(duration: 300.ms),
+                  const SizedBox(height: 20),
+                  Text(
+                    "— ${quote.author}",
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black54,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+    );
+  }
+}
+
+class ModernBottomNav extends StatelessWidget {
+  const ModernBottomNav({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.all(20),
+      height: 70,
+      decoration: BoxDecoration(
+        color: const Color(0xFF1A1A1A),
+        borderRadius: BorderRadius.circular(35),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          const Icon(Icons.home_outlined, color: Colors.white70),
+          const Icon(Icons.nightlight_round_outlined, color: Colors.white70),
+          const Icon(Icons.access_time, color: Colors.white70),
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: const BoxDecoration(
+              color: Colors.orange,
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Icons.notifications_none, color: Colors.white),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
+  const CustomAppBar({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return AppBar(
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      title: Padding(
+        padding: const EdgeInsets.only(left: 10),
+        child: Image.asset(
+          'assets/images/logo.jpg',
+          height: 40,
+          fit: BoxFit.contain,
+          cacheWidth: 80, // 2x el height para mejor calidad
+          cacheHeight: 40,
+        ),
+      ),
+    );
+  }
+
+  @override
+  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
+}
+
+class BottomActions extends StatelessWidget {
+  final bool isFavorite;
+  final VoidCallback onFavorite;
+  final VoidCallback onRefresh;
+  final VoidCallback onShare;
+
+  const BottomActions({
+    super.key,
+    required this.isFavorite,
+    required this.onFavorite,
+    required this.onRefresh,
+    required this.onShare,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 40),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          IconButton(
+            icon: Icon(isFavorite ? Icons.favorite : Icons.favorite_border),
+            color: isFavorite ? Colors.red : Colors.white,
+            iconSize: 35,
+            onPressed: onFavorite,
+          ),
+          GestureDetector(
+            onTap: onRefresh,
+            child: Container(
+              padding: const EdgeInsets.all(12),
+              decoration: const BoxDecoration(
+                color: Colors.orange,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.autorenew, color: Colors.white, size: 30),
+            ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.share_outlined),
+            color: Colors.white,
+            iconSize: 35,
+            onPressed: onShare,
+          ),
+        ],
       ),
     );
   }

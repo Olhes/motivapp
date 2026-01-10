@@ -57,10 +57,9 @@ class QuotesRepository {
     ),
   ];
 
-  // Obtener una cita aleatoria
+  // Obtener una cita aleatoria (optimizado)
   Quote getRandomQuote() {
-    _quotes.shuffle();
-    return _quotes.first;
+    return _quotes[DateTime.now().millisecondsSinceEpoch % _quotes.length];
   }
 
   // Obtener todas las citas

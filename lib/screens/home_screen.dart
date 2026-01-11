@@ -3,6 +3,12 @@ import 'package:share_plus/share_plus.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:my_motiv/data/quotes_data.dart';
 import 'package:my_motiv/models/quote.dart';
+import 'package:my_motiv/screens/login_screen.dart';
+import 'package:my_motiv/screens/favorites_screen.dart';
+import 'package:my_motiv/screens/upload_screen.dart';
+import 'package:my_motiv/screens/themes_screen.dart';
+import 'package:my_motiv/screens/notifications_screen.dart';
+import 'package:my_motiv/screens/settings_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -14,6 +20,8 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   late Quote _currentQuote;
   bool _isAnimating = false;
+  bool _isDarkMode = false;
+  int _selectedBottomIndex = 0; // Home por defecto
 
   @override
   void initState() {
@@ -33,12 +41,248 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  Widget _buildCustomDrawer() {
+    return Drawer(
+      child: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              const Color(0xFF2C3E50), // Azul grisáceo oscuro
+              const Color(0xFF34495E), // Azul grisáceo medio
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: [
+            const DrawerHeader(
+              decoration: BoxDecoration(color: Colors.transparent),
+              child: Text(
+                'Menu',
+                style: TextStyle(color: Colors.white, fontSize: 24),
+              ),
+            ),
+            _buildDrawerItem(
+              Icons.person,
+              'Profile',
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const LoginScreen()),
+                );
+              },
+            ),
+            _buildDrawerItem(
+              Icons.cloud_upload,
+              'Upload',
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const UploadScreen()),
+                );
+              },
+            ),
+            _buildDrawerItem(
+              Icons.share,
+              'Share',
+              onTap: () {
+                _shareApp();
+              },
+            ),
+
+            const Divider(color: Colors.white54), // Primer Divisor
+            _buildDrawerItem(
+              Icons.palette,
+              'Themes',
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const ThemesScreen()),
+                );
+              },
+            ),
+
+            _buildDrawerItem(
+              Icons.favorite,
+              'Favorites',
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const FavoritesScreen(),
+                  ),
+                );
+              },
+            ),
+            _buildDrawerItem(
+              Icons.wb_sunny,
+              'Mode',
+              onTap: () {
+                setState(() {
+                  _isDarkMode = !_isDarkMode;
+                });
+              },
+              trailing: Switch(
+                value: _isDarkMode,
+                activeColor: Colors.black, // Color cuando está encendido
+                onChanged: (bool value) {
+                  setState(() {
+                    _isDarkMode = value;
+                  });
+                },
+              ),
+            ),
+            const Divider(color: Colors.white54),
+            _buildDrawerItem(
+              Icons.notifications,
+              'Notifications',
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const NotificationsScreen(),
+                  ),
+                );
+              },
+            ),
+            _buildDrawerItem(
+              Icons.settings,
+              'Settings',
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const SettingsScreen(),
+                  ),
+                );
+              },
+            ),
+            _buildDrawerItem(Icons.logout, 'Logout'),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDrawerItem(
+    IconData icon,
+    String title, {
+    VoidCallback? onTap,
+    Widget? trailing,
+  }) {
+    return ListTile(
+      leading: Icon(icon, color: Colors.white),
+      title: Text(
+        title,
+        style: const TextStyle(color: Colors.white, fontSize: 16),
+      ),
+      trailing: trailing, // Esto coloca el widget al final (derecha)
+      onTap: onTap,
+    );
+  }
+
+  Widget _buildModernBottomNav() {
+    return Container(
+      margin: const EdgeInsets.all(20),
+      height: 70,
+      decoration: BoxDecoration(
+        color: const Color(0xFF1A1A1A),
+        borderRadius: BorderRadius.circular(35),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          _buildBottomNavItem(Icons.home_outlined, 'Home', 0),
+          _buildBottomNavItem(Icons.favorite_border, 'Favorites', 1),
+          _buildBottomNavItem(Icons.palette_outlined, 'Themes', 2),
+          _buildBottomNavItem(Icons.notifications_none, 'Notifications', 3),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBottomNavItem(IconData icon, String label, int index) {
+    final isSelected = _selectedBottomIndex == index;
+
+    return GestureDetector(
+      onTap: () => _onBottomNavTap(index),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 300),
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: isSelected ? Colors.orange : Colors.transparent,
+          borderRadius: BorderRadius.circular(25),
+        ),
+        child: Icon(
+          isSelected ? _getSelectedIcon(icon) : icon,
+          color: isSelected ? Colors.white : Colors.white70,
+          size: 25,
+        ),
+      ),
+    );
+  }
+
+  IconData _getSelectedIcon(IconData icon) {
+    switch (icon) {
+      case Icons.home_outlined:
+        return Icons.home;
+      case Icons.favorite_border:
+        return Icons.favorite;
+      case Icons.palette_outlined:
+        return Icons.palette;
+      case Icons.notifications_none:
+        return Icons.notifications;
+      default:
+        return icon;
+    }
+  }
+
+  void _onBottomNavTap(int index) {
+    setState(() {
+      _selectedBottomIndex = index;
+    });
+
+    switch (index) {
+      case 0: // Home
+        // Ya estamos en home
+        break;
+      case 1: // Favorites
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const FavoritesScreen()),
+        );
+        break;
+      case 2: // Themes
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const ThemesScreen()),
+        );
+        break;
+      case 3: // Notifications
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const NotificationsScreen()),
+        );
+        break;
+    }
+  }
+
+  void _shareApp() {
+    Share.share(
+      '¡Descarga esta increíble app de motivación! 🌟\n\n'
+      'Frases inspiradoras todos los días para mantenerte motivado.\n'
+      'Descárgala ahora: https://play.google.com/store',
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       extendBodyBehindAppBar: true,
-      // 1. Extraído a widget independiente para que no se reconstruya
       appBar: const CustomAppBar(),
+      drawer: _buildCustomDrawer(),
       body: Stack(
         children: [
           // 2. Imagen con caché de tamaño para no saturar la RAM
@@ -49,6 +293,12 @@ class _HomeScreenState extends State<HomeScreen> {
             width: double.infinity,
             cacheHeight: MediaQuery.of(context).size.height.toInt(),
           ),
+
+          // Overlay para modo oscuro
+          if (_isDarkMode)
+            Container(
+              decoration: BoxDecoration(color: Colors.black.withOpacity(0.3)),
+            ),
 
           SafeArea(
             child: Column(
@@ -79,7 +329,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      bottomNavigationBar: const ModernBottomNav(), // 5. Widget Const
+      bottomNavigationBar: _buildModernBottomNav(), // 5. Widget Const
     );
   }
 }
@@ -222,7 +472,13 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
     return AppBar(
       backgroundColor: Colors.transparent,
       elevation: 0,
-      centerTitle: true, // Centra el logo
+      centerTitle: true,
+      leading: Builder(
+        builder: (context) => IconButton(
+          icon: const Icon(Icons.menu, color: Colors.white, size: 30),
+          onPressed: () => Scaffold.of(context).openDrawer(),
+        ),
+      ),
       title: Container(
         padding: const EdgeInsets.symmetric(vertical: 8),
         child: Image.asset(

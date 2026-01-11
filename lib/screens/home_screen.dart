@@ -222,14 +222,16 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
     return AppBar(
       backgroundColor: Colors.transparent,
       elevation: 0,
-      title: Padding(
-        padding: const EdgeInsets.only(left: 10),
+      centerTitle: true, // Centra el logo
+      title: Container(
+        padding: const EdgeInsets.symmetric(vertical: 8),
         child: Image.asset(
-          'assets/images/logo.jpg',
-          height: 40,
+          'assets/images/logo.png',
+          width: 70,
+          height: 70,
           fit: BoxFit.contain,
-          cacheWidth: 80, // 2x el height para mejor calidad
-          cacheHeight: 40,
+          cacheWidth: 140,
+          cacheHeight: 140,
         ),
       ),
     );

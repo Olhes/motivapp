@@ -1,0 +1,28 @@
+{
+  "name": "my-motiv-backend",
+  "version": "1.0.0",
+  "description": "Backend para My Motiv app",
+  "main": "src/main.js",
+  "scripts": {
+    "start": "node src/main.js",
+    "dev": "nodemon src/main.js",
+    "test": "jest",
+    "seed": "node src/scripts/seed.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "mongoose": "^7.5.0",
+    "bcryptjs": "^2.4.3",
+    "jsonwebtoken": "^9.0.2",
+    "helmet": "^7.0.0",
+    "morgan": "^1.10.0",
+    "express-rate-limit": "^6.10.0",
+    "joi": "^17.9.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1",
+    "jest": "^29.3.1"
+  }
+}

@@ -97,7 +97,7 @@ DELETE /api/notifications/:id # Eliminar notificación
 ## 🗄️ Base de Datos
 
 ### Modelos Principales
-- **User**: Usuarios del sistema
+- **User**: Usuarios del sistema(no_Existe_admin)
 - **Quote**: Citas motivacionales
 - **Notification**: Notificaciones de usuario
 - **Media**: Archivos multimedia

@@ -148,7 +148,12 @@ npm run test:watch
 ```env
 NODE_ENV=production
 PORT=3000
-MONGODB_URI=mongodb://servidor-produccion:27017/my-motiv
+MONGODB_AUTH_URI=mongodb://servidor-produccion:27017/my-motiv-auth
+MONGODB_CATEGORIES_URI=mongodb://servidor-produccion:27017/my-motiv-categories
+MONGODB_QUOTES_URI=mongodb://servidor-produccion:27017/my-motiv-quotes
+MONGODB_MEDIA_URI=mongodb://servidor-produccion:27017/my-motiv-media
+MONGODB_THEMES_URI=mongodb://servidor-produccion:27017/my-motiv-themes
+MONGODB_NOTIFICATIONS_URI=mongodb://servidor-produccion:27017/my-motiv-notifications
 JWT_SECRET=secreto-muy-seguro-produccion
 ```
 

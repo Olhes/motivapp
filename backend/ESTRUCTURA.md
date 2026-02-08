@@ -121,7 +121,12 @@ npm run seed        # Poblar base de datos
 
 ```env
 PORT=3000
-MONGODB_URI=mongodb://localhost:27017/my-motiv
+MONGODB_AUTH_URI=mongodb://localhost:27017/my-motiv-auth
+MONGODB_CATEGORIES_URI=mongodb://localhost:27017/my-motiv-categories
+MONGODB_QUOTES_URI=mongodb://localhost:27017/my-motiv-quotes
+MONGODB_MEDIA_URI=mongodb://localhost:27017/my-motiv-media
+MONGODB_THEMES_URI=mongodb://localhost:27017/my-motiv-themes
+MONGODB_NOTIFICATIONS_URI=mongodb://localhost:27017/my-motiv-notifications
 JWT_SECRET=my-motiv-secret-key-2024
 JWT_EXPIRE=7d
 NODE_ENV=development

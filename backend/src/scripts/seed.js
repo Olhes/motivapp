@@ -1,6 +1,13 @@
 const mongoose = require('mongoose');
-const connectDB = require('../config/database');
 const logger = require('../utils/logger');
+
+// Importar conexiones modulares
+const { connectAuthDB, getAuthConnection } = require('../config/auth-database');
+const { connectCategoriesDB, getCategoriesConnection } = require('../config/categories-database');
+const { connectQuotesDB, getQuotesConnection } = require('../config/quotes-database');
+const { connectMediaDB, getMediaConnection } = require('../config/media-database');
+const { connectThemesDB, getThemesConnection } = require('../config/themes-database');
+const { connectNotificationsDB, getNotificationsConnection } = require('../config/notifications-database');
 
 // Importar modelos
 const Quote = require('../models/Quote');
@@ -72,7 +79,15 @@ const initialQuotes = [
 // Función para poblar la base de datos
 const seedDatabase = async () => {
   try {
-    await connectDB();
+    // Conectar a todas las bases de datos modulares
+    await connectAuthDB();
+    await connectCategoriesDB();
+    await connectQuotesDB();
+    await connectMediaDB();
+    await connectThemesDB();
+    await connectNotificationsDB();
+    
+    logger.info('🗄️ Todas las bases de datos conectadas');
     
     // Limpiar colección de quotes
     await Quote.deleteMany({});

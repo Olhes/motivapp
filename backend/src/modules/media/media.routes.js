@@ -1,6 +1,6 @@
 const express = require('express');
 const mediaController = require('./media.controller');
-const authMiddleware = require('../../middleware/auth');
+const { authMiddleware } = require('../../middleware/auth');
 const { validateUploadMedia, validateQuery, validateObjectId } = require('./media.validation');
 
 const router = express.Router();

@@ -1,8 +1,8 @@
-const cors = require('cors');
+import cors from 'cors';
 
 // Configuración CORS
-const corsOptions = {
-  origin: function (origin, callback) {
+const corsOptions: cors.CorsOptions = {
+  origin: function (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void): void {
     // Permitir orígenes específicos
     const allowedOrigins = [
       'http://localhost:3000',
@@ -29,4 +29,4 @@ const corsOptions = {
   exposedHeaders: ['X-Total-Count'],
 };
 
-module.exports = corsOptions;
+export default corsOptions;

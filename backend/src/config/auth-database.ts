@@ -1,19 +1,18 @@
-const mongoose = require('mongoose');
-const logger = require('../utils/logger');
+import mongoose from 'mongoose';
+import logger from '../utils/logger';
 
-let authConnection = null;
+let authConnection: mongoose.Connection | null = null;
 
-const connectAuthDB = async () => {
+export const connectAuthDB = async (): Promise<mongoose.Connection> => {
   try {
     if (authConnection && authConnection.readyState === 1) {
       logger.info('✅ Auth DB ya conectada');
       return authConnection;
     }
 
-    const conn = await mongoose.createConnection(process.env.MONGODB_AUTH_URI || 'mongodb://localhost:27017/my-motiv-auth', {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
+    const conn = await mongoose.createConnection(
+      process.env.MONGODB_AUTH_URI || 'mongodb://localhost:27017/my-motiv-auth'
+    );
 
     authConnection = conn;
     logger.info(`✅ MongoDB Auth conectado: ${conn.host}`);
@@ -31,19 +30,15 @@ const connectAuthDB = async () => {
     return conn;
 
   } catch (error) {
-    logger.error('❌ Error conectando a MongoDB Auth:', error.message);
+    const err = error as Error;
+    logger.error('❌ Error conectando a MongoDB Auth:', err.message);
     throw error;
   }
 };
 
-const getAuthConnection = () => {
+export const getAuthConnection = (): mongoose.Connection => {
   if (!authConnection || authConnection.readyState !== 1) {
     throw new Error('Auth DB no está conectada');
   }
   return authConnection;
-};
-
-module.exports = {
-  connectAuthDB,
-  getAuthConnection
 };

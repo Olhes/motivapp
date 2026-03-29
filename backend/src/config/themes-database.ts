@@ -1,23 +1,23 @@
-const mongoose = require('mongoose');
-const logger = require('../utils/logger');
+import mongoose from 'mongoose';
+import logger from '../utils/logger';
 
-let themesConnection = null;
+let themesConnection: mongoose.Connection | null = null;
 
-const connectThemesDB = async () => {
+export const connectThemesDB = async (): Promise<mongoose.Connection> => {
   try {
     if (themesConnection && themesConnection.readyState === 1) {
       logger.info('✅ Themes DB ya conectada');
       return themesConnection;
     }
 
-    const conn = await mongoose.createConnection(process.env.MONGODB_THEMES_URI || 'mongodb://localhost:27017/my-motiv-themes', {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
+    const conn = await mongoose.createConnection(
+      process.env.MONGODB_THEMES_URI || 'mongodb://localhost:27017/my-motiv-themes'
+    );
 
     themesConnection = conn;
     logger.info(`✅ MongoDB Themes conectado: ${conn.host}`);
 
+    // Manejar desconexión
     conn.on('error', (err) => {
       logger.error('❌ Error de conexión MongoDB Themes:', err);
     });
@@ -30,19 +30,15 @@ const connectThemesDB = async () => {
     return conn;
 
   } catch (error) {
-    logger.error('❌ Error conectando a MongoDB Themes:', error.message);
+    const err = error as Error;
+    logger.error('❌ Error conectando a MongoDB Themes:', err.message);
     throw error;
   }
 };
 
-const getThemesConnection = () => {
+export const getThemesConnection = (): mongoose.Connection => {
   if (!themesConnection || themesConnection.readyState !== 1) {
     throw new Error('Themes DB no está conectada');
   }
   return themesConnection;
-};
-
-module.exports = {
-  connectThemesDB,
-  getThemesConnection
 };

@@ -1,13 +1,42 @@
-const bcrypt = require('bcryptjs');
-const { generateToken, verifyToken } = require('../../config/auth');
-const logger = require('../../utils/logger');
+import bcrypt from 'bcryptjs';
+import { generateToken, verifyToken, JWTPayload } from '../../config/auth';
+import logger from '../../utils/logger';
+
+export interface User {
+  id: string;
+  username: string;
+  email: string;
+  password: string;
+  createdAt: Date;
+}
+
+export interface UserWithoutPassword {
+  id: string;
+  username: string;
+  email: string;
+  createdAt: Date;
+}
+
+export interface LoginResponse {
+  user: UserWithoutPassword;
+  accessToken: string;
+  refreshToken: string;
+}
+
+export interface RegisterResponse {
+  user: UserWithoutPassword;
+}
+
+export interface ErrorResponse {
+  error: string;
+}
 
 // Usuarios mock (en producción usar base de datos)
-let users = [];
-let refreshTokens = [];
+let users: User[] = [];
+let refreshTokens: string[] = [];
 
 // Simular base de datos de usuarios
-const initializeUsers = () => {
+const initializeUsers = (): void => {
   // Usuario de prueba
   const hashedPassword = bcrypt.hashSync('Admin123', 10);
   users.push({
@@ -25,41 +54,42 @@ if (users.length === 0) {
 }
 
 // Registro de usuario
-const register = async ({ username, email, password }) => {
+export const register = async (userData: { username: string; email: string; password: string }): Promise<RegisterResponse | ErrorResponse> => {
   try {
     // Verificar si el usuario ya existe
-    const existingUser = users.find(u => u.email === email || u.username === username);
+    const existingUser = users.find(u => u.email === userData.email || u.username === userData.username);
     if (existingUser) {
       return { error: 'El usuario o email ya existe' };
     }
 
     // Encriptar contraseña
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = await bcrypt.hash(userData.password, 10);
     
     // Crear nuevo usuario
-    const newUser = {
+    const newUser: User = {
       id: Date.now().toString(),
-      username,
-      email,
+      username: userData.username,
+      email: userData.email,
       password: hashedPassword,
       createdAt: new Date()
     };
 
     users.push(newUser);
-    logger.info(`Usuario registrado: ${email}`);
+    logger.info(`Usuario registrado: ${userData.email}`);
 
     // Retornar usuario sin contraseña
     const { password: _, ...userWithoutPassword } = newUser;
     return { user: userWithoutPassword };
     
   } catch (error) {
-    logger.error('Error en register service:', error.message);
+    const err = error as Error;
+    logger.error('Error en register service:', err.message);
     throw new Error('Error registrando usuario');
   }
 };
 
 // Login de usuario
-const login = async (email, password) => {
+export const login = async (email: string, password: string): Promise<LoginResponse | ErrorResponse> => {
   try {
     // Buscar usuario por email
     const user = users.find(u => u.email === email);
@@ -74,7 +104,7 @@ const login = async (email, password) => {
     }
 
     // Generar tokens
-    const payload = {
+    const payload: JWTPayload = {
       id: user.id,
       username: user.username,
       email: user.email
@@ -92,35 +122,37 @@ const login = async (email, password) => {
       user: {
         id: user.id,
         username: user.username,
-        email: user.email
+        email: user.email,
+        createdAt: user.createdAt
       },
       accessToken,
       refreshToken
     };
     
   } catch (error) {
-    logger.error('Error en login service:', error.message);
+    const err = error as Error;
+    logger.error('Error en login service:', err.message);
     throw new Error('Error en inicio de sesión');
   }
 };
 
 // Refrescar token
-const refreshToken = async (refreshToken) => {
+export const refreshToken = async (refreshTokenString: string): Promise<{ accessToken: string } | ErrorResponse> => {
   try {
     // Verificar si el refresh token existe
-    const tokenExists = refreshTokens.includes(refreshToken);
+    const tokenExists = refreshTokens.includes(refreshTokenString);
     if (!tokenExists) {
       return { error: 'Refresh token inválido' };
     }
 
     // Verificar token
-    const decoded = verifyToken(refreshToken);
+    const decoded = verifyToken(refreshTokenString);
     if (decoded.type !== 'refresh') {
       return { error: 'Token inválido' };
     }
 
     // Generar nuevo access token
-    const payload = {
+    const payload: JWTPayload = {
       id: decoded.id,
       username: decoded.username,
       email: decoded.email
@@ -131,26 +163,28 @@ const refreshToken = async (refreshToken) => {
     return { accessToken: newAccessToken };
     
   } catch (error) {
-    logger.error('Error en refreshToken service:', error.message);
+    const err = error as Error;
+    logger.error('Error en refreshToken service:', err.message);
     return { error: 'Refresh token inválido' };
   }
 };
 
 // Logout
-const logout = async (refreshToken) => {
+export const logout = async (refreshTokenString: string): Promise<void> => {
   try {
     // Eliminar refresh token
-    refreshTokens = refreshTokens.filter(token => token !== refreshToken);
+    refreshTokens = refreshTokens.filter(token => token !== refreshTokenString);
     logger.info('Usuario logout');
     
   } catch (error) {
-    logger.error('Error en logout service:', error.message);
+    const err = error as Error;
+    logger.error('Error en logout service:', err.message);
     throw new Error('Error cerrando sesión');
   }
 };
 
 // Obtener perfil de usuario
-const getProfile = async (userId) => {
+export const getProfile = async (userId: string): Promise<UserWithoutPassword | null> => {
   try {
     const user = users.find(u => u.id === userId);
     if (!user) {
@@ -162,12 +196,13 @@ const getProfile = async (userId) => {
     return userWithoutPassword;
     
   } catch (error) {
-    logger.error('Error en getProfile service:', error.message);
+    const err = error as Error;
+    logger.error('Error en getProfile service:', err.message);
     throw new Error('Error obteniendo perfil');
   }
 };
 
-module.exports = {
+export default {
   register,
   login,
   refreshToken,

@@ -1,7 +1,9 @@
-const express = require('express');
-const router = express.Router();
-const authController = require('./auth.controller');
-const authValidation = require('./auth.validation');
+import { Router, Request, Response, NextFunction } from 'express';
+import authController from './auth.controller';
+import authValidation from './auth.validation';
+import { authMiddleware } from '../../middleware/auth';
+
+const router = Router();
 
 // Rutas públicas
 router.post('/register', 
@@ -26,8 +28,8 @@ router.post('/logout',
 );
 
 router.get('/profile', 
-  require('../../middleware/auth').authMiddleware, 
+  authMiddleware, 
   authController.getProfile
 );
 
-module.exports = router;
+export default router;

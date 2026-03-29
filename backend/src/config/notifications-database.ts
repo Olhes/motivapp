@@ -1,23 +1,23 @@
-const mongoose = require('mongoose');
-const logger = require('../utils/logger');
+import mongoose from 'mongoose';
+import logger from '../utils/logger';
 
-let notificationsConnection = null;
+let notificationsConnection: mongoose.Connection | null = null;
 
-const connectNotificationsDB = async () => {
+export const connectNotificationsDB = async (): Promise<mongoose.Connection> => {
   try {
     if (notificationsConnection && notificationsConnection.readyState === 1) {
       logger.info('✅ Notifications DB ya conectada');
       return notificationsConnection;
     }
 
-    const conn = await mongoose.createConnection(process.env.MONGODB_NOTIFICATIONS_URI || 'mongodb://localhost:27017/my-motiv-notifications', {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
+    const conn = await mongoose.createConnection(
+      process.env.MONGODB_NOTIFICATIONS_URI || 'mongodb://localhost:27017/my-motiv-notifications'
+    );
 
     notificationsConnection = conn;
     logger.info(`✅ MongoDB Notifications conectado: ${conn.host}`);
 
+    // Manejar desconexión
     conn.on('error', (err) => {
       logger.error('❌ Error de conexión MongoDB Notifications:', err);
     });
@@ -30,19 +30,15 @@ const connectNotificationsDB = async () => {
     return conn;
 
   } catch (error) {
-    logger.error('❌ Error conectando a MongoDB Notifications:', error.message);
+    const err = error as Error;
+    logger.error('❌ Error conectando a MongoDB Notifications:', err.message);
     throw error;
   }
 };
 
-const getNotificationsConnection = () => {
+export const getNotificationsConnection = (): mongoose.Connection => {
   if (!notificationsConnection || notificationsConnection.readyState !== 1) {
     throw new Error('Notifications DB no está conectada');
   }
   return notificationsConnection;
-};
-
-module.exports = {
-  connectNotificationsDB,
-  getNotificationsConnection
 };

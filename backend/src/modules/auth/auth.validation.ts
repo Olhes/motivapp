@@ -1,8 +1,9 @@
-const Joi = require('joi');
-const { badRequestResponse } = require('../../utils/response');
+import Joi from 'joi';
+import { Request, Response, NextFunction } from 'express';
+import { badRequestResponse } from '../../utils/response';
 
 // Validación para registro
-const validateRegister = (req, res, next) => {
+const validateRegister = (req: Request, res: Response, next: NextFunction): void => {
   const schema = Joi.object({
     username: Joi.string()
       .alphanum()
@@ -27,12 +28,10 @@ const validateRegister = (req, res, next) => {
     password: Joi.string()
       .min(6)
       .max(128)
-      .pattern(new RegExp('^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)'))
       .required()
       .messages({
         'string.min': 'La contraseña debe tener al menos 6 caracteres',
         'string.max': 'La contraseña no puede exceder 128 caracteres',
-        'string.pattern.base': 'La contraseña debe contener al menos una mayúscula, una minúscula y un número',
         'any.required': 'La contraseña es requerida'
       })
   });
@@ -41,14 +40,15 @@ const validateRegister = (req, res, next) => {
   
   if (error) {
     const errorMessage = error.details[0].message;
-    return badRequestResponse(res, errorMessage);
+    badRequestResponse(res, errorMessage);
+    return;
   }
   
   next();
 };
 
 // Validación para login
-const validateLogin = (req, res, next) => {
+const validateLogin = (req: Request, res: Response, next: NextFunction): void => {
   const schema = Joi.object({
     email: Joi.string()
       .email()
@@ -69,14 +69,15 @@ const validateLogin = (req, res, next) => {
   
   if (error) {
     const errorMessage = error.details[0].message;
-    return badRequestResponse(res, errorMessage);
+    badRequestResponse(res, errorMessage);
+    return;
   }
   
   next();
 };
 
 // Validación para refresh token
-const validateRefreshToken = (req, res, next) => {
+const validateRefreshToken = (req: Request, res: Response, next: NextFunction): void => {
   const schema = Joi.object({
     refreshToken: Joi.string()
       .required()
@@ -89,14 +90,15 @@ const validateRefreshToken = (req, res, next) => {
   
   if (error) {
     const errorMessage = error.details[0].message;
-    return badRequestResponse(res, errorMessage);
+    badRequestResponse(res, errorMessage);
+    return;
   }
   
   next();
 };
 
 // Validación para logout
-const validateLogout = (req, res, next) => {
+const validateLogout = (req: Request, res: Response, next: NextFunction): void => {
   const schema = Joi.object({
     refreshToken: Joi.string()
       .required()
@@ -109,13 +111,14 @@ const validateLogout = (req, res, next) => {
   
   if (error) {
     const errorMessage = error.details[0].message;
-    return badRequestResponse(res, errorMessage);
+    badRequestResponse(res, errorMessage);
+    return;
   }
   
   next();
 };
 
-module.exports = {
+export default {
   validateRegister,
   validateLogin,
   validateRefreshToken,

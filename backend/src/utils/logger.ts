@@ -1,8 +1,8 @@
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
 
 // Crear carpeta de logs si no existe
-const logsDir = path.join(__dirname, '../../logs');
+const logsDir = path.join(process.cwd(), 'logs');
 if (!fs.existsSync(logsDir)) {
   fs.mkdirSync(logsDir, { recursive: true });
 }
@@ -13,10 +13,12 @@ const levels = {
   WARN: 'WARN',
   INFO: 'INFO',
   DEBUG: 'DEBUG'
-};
+} as const;
+
+type LogLevel = typeof levels[keyof typeof levels];
 
 // Función para escribir logs
-const writeLog = (level, message) => {
+const writeLog = (level: LogLevel, message: string): void => {
   const timestamp = new Date().toISOString();
   const logEntry = `[${timestamp}] ${level}: ${message}\n`;
   
@@ -34,12 +36,20 @@ const writeLog = (level, message) => {
   console.log(logEntry.trim());
 };
 
+// Interfaz del logger
+export interface Logger {
+  error: (message: string) => void;
+  warn: (message: string) => void;
+  info: (message: string) => void;
+  debug: (message: string) => void;
+}
+
 // Métodos de logging
-const logger = {
-  error: (message) => writeLog(levels.ERROR, message),
-  warn: (message) => writeLog(levels.WARN, message),
-  info: (message) => writeLog(levels.INFO, message),
-  debug: (message) => writeLog(levels.DEBUG, message),
+const logger: Logger = {
+  error: (message: string) => writeLog(levels.ERROR, message),
+  warn: (message: string) => writeLog(levels.WARN, message),
+  info: (message: string) => writeLog(levels.INFO, message),
+  debug: (message: string) => writeLog(levels.DEBUG, message),
 };
 
-module.exports = logger;
+export default logger;
